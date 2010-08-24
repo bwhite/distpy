@@ -48,7 +48,8 @@ class L2Sqr(distpy.BaseDistance):
         """
         v0 = np.asfarray(v0)
         v1 = np.asfarray(v1)
-        return float(np.linalg.norm(v0 - v1))
+        d = v0 - v1
+        return float(np.dot(d, d))
 
     def nn(self, neighbors, vector):
         """Returns the index of the nearest neighbor to the vector
