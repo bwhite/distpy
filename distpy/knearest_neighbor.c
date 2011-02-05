@@ -28,7 +28,7 @@ static inline void clear_arrays(int *neighbor_indeces, double *neighbor_dists, i
   int i;
   for (i = 0; i < num_neighbors; ++i) {
     neighbor_indeces[i] = -1;
-    neighbor_dists[i] = INFINITY;
+    neighbor_dists[i] = HUGE_VAL;
   }
 }
 
