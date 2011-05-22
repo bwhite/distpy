@@ -1,2 +1,1 @@
-from base import BaseDistance
-from l2sqr import L2Sqr
+from _distpy_l2 import L2Base, L2Sqr
