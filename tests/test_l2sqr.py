@@ -34,9 +34,15 @@ class Test(unittest.TestCase):
         dist_metrics = [x for x in dist_metrics
                         if isinstance(x, types.TypeType)]
         dist_metrics = [x for x in dist_metrics
-                        if issubclass(x, distpy.BaseDistance)]
-        dist0 = distpy.BaseDistance()
+                        if issubclass(x, distpy.L2Base)]
+        dist0 = distpy.L2Base()
         dist1 = distpy.L2Sqr()
+        # Test NN vs 1-KNN
+        np.testing.assert_equal(dist0.knn(neighbors, vector, 1)[0],
+                                dist0.nn(neighbors, vector))
+        np.testing.assert_equal(dist1.knn(neighbors, vector, 1)[0],
+                                dist1.nn(neighbors, vector))
+        # Test KNN
         for k in range(num_vecs + 2):
             d0 = dist0.knn(neighbors, vector, k)
             d1 = dist1.knn(neighbors, vector, k)
