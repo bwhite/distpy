@@ -124,5 +124,5 @@ cdef class L2Sqr(object):
                        <np.int32_t *>neighbor_indeces.data,
                        <np.float64_t *>neighbor_dists.data,
                        len(neighbors), len(vector), k)
-        return np.asfarray([neighbor_dists[:ind + 1],
-                            neighbor_indeces[:ind + 1]]).T
+        return np.ascontiguousarray(np.asfarray([neighbor_dists[:ind + 1],
+                                                 neighbor_indeces[:ind + 1]], dtype=np.float64).T)
