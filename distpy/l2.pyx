@@ -102,6 +102,22 @@ cdef class L2Sqr(object):
         cdef np.ndarray[np.float64_t, ndim=2, mode='c'] out = self.knn(neighbors, vector, 1)
         return out[0]
 
+
+    cpdef np.ndarray[np.float64_t, ndim=1, mode='c'] nns(self,
+             np.ndarray[np.float64_t, ndim=2, mode='c'] neighbors,
+             np.ndarray[np.float64_t, ndim=2, mode='c'] vectors):
+        """Returns the index of the nearest neighbor to the vector
+        
+        Args:
+            neighbors: Iteratable of list-like objects
+            vectors: List-like object
+        
+        Returns:
+             Ndarray of (distance, index)
+        """
+        cdef np.ndarray[np.float64_t, ndim=1, mode='c'] vector
+        return np.array([self.knn(neighbors, vector, 1)[0] for vector in vectors])
+
     cpdef np.ndarray[np.float64_t, ndim=2, mode='c'] knn(self,
               np.ndarray[np.float64_t, ndim=2, mode='c'] neighbors,
               np.ndarray[np.float64_t, ndim=1, mode='c'] vector, int k):
