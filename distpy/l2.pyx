@@ -64,6 +64,7 @@ cdef class L2Base(object):
 cdef extern from "knearest_neighbor.h":
     int knnl2sqr(np.float64_t *test_point, np.float64_t *train_points, np.int32_t *neighbor_indeces, np.float64_t *neighbor_dists,
                  int num_train_points, int num_dims, int num_neighbors)
+    void nnsl2sqr(np.float64_t *test_points, np.float64_t *train_points, np.float64_t *neighbor_dist_indeces, int num_test_points, int num_train_points, int num_dims)
 
 cdef class L2Sqr(object):
     """L2 Norm Squared
@@ -103,7 +104,7 @@ cdef class L2Sqr(object):
         return out[0]
 
 
-    cpdef np.ndarray[np.float64_t, ndim=1, mode='c'] nns(self,
+    cpdef np.ndarray[np.float64_t, ndim=2, mode='c'] nns(self,
              np.ndarray[np.float64_t, ndim=2, mode='c'] neighbors,
              np.ndarray[np.float64_t, ndim=2, mode='c'] vectors):
         """Returns the index of the nearest neighbor to the vector
@@ -115,8 +116,10 @@ cdef class L2Sqr(object):
         Returns:
              Ndarray of (distance, index)
         """
-        cdef np.ndarray[np.float64_t, ndim=1, mode='c'] vector
-        return np.array([self.knn(neighbors, vector, 1)[0] for vector in vectors])
+        cdef np.ndarray[np.float64_t, ndim=2, mode='c'] out = np.zeros((len(vectors), 2))
+        nnsl2sqr(<np.float64_t *>vectors.data, <np.float64_t *>neighbors.data, <np.float64_t *>out.data,
+                 vectors.shape[0], neighbors.shape[0], neighbors.shape[1])
+        return out
 
     cpdef np.ndarray[np.float64_t, ndim=2, mode='c'] knn(self,
               np.ndarray[np.float64_t, ndim=2, mode='c'] neighbors,

@@ -51,5 +51,13 @@ class Test(unittest.TestCase):
                 self.assertEqual(x[1], y[1])
                 self.assertAlmostEqual(x[0] * x[0], y[0])
 
+    def test_nns(self):
+        d = distpy.L2Sqr()
+        vs0 = np.random.random((50, 50))
+        vs1 = np.random.random((50, 50))
+        out0 = d.nns(vs0, vs1)
+        out1 = [d.nn(vs0, x) for x in vs1]
+        np.testing.assert_almost_equal(out0, out1)
+
 if __name__ == '__main__':
     unittest.main()
