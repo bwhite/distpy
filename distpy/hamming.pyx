@@ -8,29 +8,39 @@ cdef extern from "hamming_aux.h":
     int hamdist64(void *x, void *y, int num_ints)
     void hamdist_batch(void *xs, void *y, np.int32_t *out, int num_ints, int num_xs, int num_bytes, int (*hamdist)(void *, void *, int))
 
+
+cdef int hamdist_shift(int num_bytes):
+    if num_bytes % 8 == 0:
+        return 3
+    elif num_bytes % 4 == 0:
+        return 2
+    elif num_bytes % 2 == 0:
+        return 1
+    return 0
+
+cdef (int(*)(void*, void*, int)) hamdist_selector(int shift):
+    if shift == 0:
+        return hamdist8
+    elif shift == 1:
+        return hamdist16
+    elif shift == 2:
+        return hamdist32
+    elif shift == 3:
+        return hamdist64
+    raise ValueError('Shift expected to be 0 <= x <= 3')
+
+
 cdef class Hamming(object):
     """Hamming distance computer
     """
-    cdef int (*hamdist)(void*,  void*, int)
     cdef int shift
 
     def __init__(self, int num_bytes=0):
         super(Hamming, self).__init__()
-        if num_bytes % 8 == 0:
-            self.hamdist = hamdist64
-            self.shift = 3
-        elif num_bytes % 4 == 0:
-            self.hamdist = hamdist32
-            self.shift = 2
-        elif num_bytes % 2 == 0:
-            self.hamdist = hamdist16
-            self.shift = 1
-        elif num_bytes > 0:
-            self.hamdist = hamdist8
-            self.shift = 0
-        else:  # NOTE(brandyn): Special case for default, will be used later
-            self.hamdist = hamdist8
-            self.shift = 0
+        if num_bytes > 0:
+            self.shift = hamdist_shift(num_bytes)
+        else:
+            self.shift = -1
 
     cpdef int dist(self,
                    np.ndarray[np.uint8_t, ndim=1, mode='c'] v0,
@@ -45,7 +55,11 @@ cdef class Hamming(object):
             Integer values (greater is further)
         """
         assert v0.size == v1.size
-        return self.hamdist(v0.data, v1.data, v0.size >> self.shift)
+        cdef int shift
+        shift = self.shift if self.shift >= 0 else hamdist_shift(v0.size)
+        cdef int (*hamdist)(void*,  void*, int)
+        hamdist = hamdist_selector(shift)
+        return hamdist(v0.data, v1.data, v0.size >> shift)
 
     cpdef np.ndarray[np.int32_t, ndim=2, mode='c'] knn(self,
                                                        np.ndarray[np.uint8_t, ndim=2, mode='c'] neighbors,
@@ -60,7 +74,12 @@ cdef class Hamming(object):
         Returns:
             ndarray (distance, index) (k x 2)
         """
+        assert vector.size == neighbors.shape[1]
         cdef np.ndarray[np.int32_t, ndim=1, mode='c'] dists = np.zeros(neighbors.shape[0], dtype=np.int32)
-        hamdist_batch(neighbors.data, vector.data, <np.int32_t *>dists.data, vector.size >> self.shift, neighbors.shape[0], vector.size, self.hamdist)
+        cdef int shift
+        shift = self.shift if self.shift >= 0 else hamdist_shift(vector.size)
+        cdef int (*hamdist)(void*,  void*, int)
+        hamdist = hamdist_selector(shift)
+        hamdist_batch(neighbors.data, vector.data, <np.int32_t *>dists.data, vector.size >> shift, neighbors.shape[0], vector.size, hamdist)
         indeces = dists.argsort()[:k]
         return np.ascontiguousarray(np.dstack([dists[indeces], indeces])[0])
