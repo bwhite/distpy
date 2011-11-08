@@ -117,6 +117,7 @@ cdef class L2Sqr(object):
              Ndarray of (distance, index)
         """
         cdef np.ndarray[np.float64_t, ndim=2, mode='c'] out = np.zeros((len(vectors), 2))
+        assert neighbors.shape[1] == vectors.shape[1]
         nnsl2sqr(<np.float64_t *>vectors.data, <np.float64_t *>neighbors.data, <np.float64_t *>out.data,
                  vectors.shape[0], neighbors.shape[0], neighbors.shape[1])
         return out
@@ -138,6 +139,7 @@ cdef class L2Sqr(object):
         cdef np.ndarray[np.float64_t, ndim=1, mode='c'] neighbor_dists
         neighbor_indeces = np.zeros(k, dtype=np.int32)
         neighbor_dists = np.zeros(k, dtype=np.float64)
+        assert neighbors.shape[1] == vector.shape[0]
         ind = knnl2sqr(<np.float64_t *>vector.data,
                        <np.float64_t *>neighbors.data,
                        <np.int32_t *>neighbor_indeces.data,
