@@ -117,7 +117,10 @@ cdef class L2Sqr(object):
              Ndarray of (distance, index)
         """
         cdef np.ndarray[np.float64_t, ndim=2, mode='c'] out = np.zeros((len(vectors), 2))
-        assert neighbors.shape[1] == vectors.shape[1]
+        try:
+            assert neighbors.shape[1] == vectors.shape[1]
+        except:
+            raise ValueError('Shape Mismatch: [%s] [%s]' % (neighbors.shape[1], vectors.shape[1]))
         nnsl2sqr(<np.float64_t *>vectors.data, <np.float64_t *>neighbors.data, <np.float64_t *>out.data,
                  vectors.shape[0], neighbors.shape[0], neighbors.shape[1])
         return out
