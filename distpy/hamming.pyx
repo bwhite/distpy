@@ -47,12 +47,10 @@ cdef class Hamming(object):
                    np.ndarray[np.uint8_t, ndim=1, mode='c'] v1):
         """Compute distance between two vectors
         
-        Args:
-            v0: Vector
-            v1: Vector
-        
-        Returns:
-            Integer values (greater is further)
+
+        :param v0: Vector
+        :param v1: Vector
+        :returns: Integer values (greater is further)
         """
         assert v0.size == v1.size
         cdef int shift
@@ -66,13 +64,11 @@ cdef class Hamming(object):
                                                        np.ndarray[np.uint8_t, ndim=1, mode='c'] vector, int k):
         """Returns the k nearest neighbors to the vector
         
-        Args:
-            neighbors: Iteratable of list-like objects
-            vector: List-like object
-            k: Number of neighbors desired
-        
-        Returns:
-            ndarray (distance, index) (k x 2)
+
+        :param neighbors: Iteratable of list-like objects
+        :param vector: List-like object
+        :param k: Number of neighbors desired
+        :returns: ndarray (distance, index) (k x 2)
         """
         assert vector.size == neighbors.shape[1]
         cdef np.ndarray[np.int32_t, ndim=1, mode='c'] dists = np.zeros(neighbors.shape[0], dtype=np.int32)

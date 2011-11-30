@@ -45,8 +45,6 @@ cdef class L2Base(object):
         :param neighbors: Iteratable of list-like objects
         :param vector: List-like object
         :param k: Number of neighbors desired
-        
-
         :returns: ndarray (distance, index) (k x 2)
         """
         cdef np.ndarray[np.float64_t, ndim=2, mode='c'] dists
@@ -72,12 +70,10 @@ cdef class L2Sqr(object):
                       np.ndarray[np.float64_t, ndim=1, mode='c'] v1):
         """Compute distance between two vectors
         
-        Args:
-            v0: Vector
-            v1: Vector
-        
-        Returns:
-            Real valued distance (greater is further)
+
+        :param v0: Vector
+        :param v1: Vector
+        :returns: Real valued distance (greater is further)
         """
         d = v0 - v1
         return np.dot(d, d)
@@ -87,12 +83,10 @@ cdef class L2Sqr(object):
              np.ndarray[np.float64_t, ndim=1, mode='c'] vector):
         """Returns the index of the nearest neighbor to the vector
         
-        Args:
-            neighbors: Iteratable of list-like objects
-            vector: List-like object
-        
-        Returns:
-             ndarray of (distance, index)
+
+        :param neighbors: Iteratable of list-like objects
+        :param vector: List-like object
+        :returns: ndarray of (distance, index)
         """
         cdef np.ndarray[np.float64_t, ndim=2, mode='c'] out = self.knn(neighbors, vector, 1)
         return out[0]
@@ -102,13 +96,10 @@ cdef class L2Sqr(object):
              np.ndarray[np.float64_t, ndim=2, mode='c'] neighbors,
              np.ndarray[np.float64_t, ndim=2, mode='c'] vectors):
         """Returns the index of the nearest neighbor to the vector
-        
-        Args:
-            neighbors: Iteratable of list-like objects
-            vectors: List-like object
-        
-        Returns:
-             Ndarray of (distance, index)
+
+        :param neighbors: Iteratable of list-like objects
+        :param vectors: List-like object
+        :returns: Ndarray of (distance, index)
         """
         cdef np.ndarray[np.float64_t, ndim=2, mode='c'] out = np.zeros((len(vectors), 2))
         try:
@@ -123,14 +114,11 @@ cdef class L2Sqr(object):
               np.ndarray[np.float64_t, ndim=2, mode='c'] neighbors,
               np.ndarray[np.float64_t, ndim=1, mode='c'] vector, int k):
         """Returns the k nearest neighbors to the vector
-        
-        Args:
-            neighbors: Iteratable of list-like objects
-            vector: List-like object
-            k: Number of neighbors desired
-        
-        Returns:
-            ndarray (distance, index) (k x 2)
+
+        :param neighbors: Iteratable of list-like objects
+        :param vector: List-like object
+        :param k: Number of neighbors desired
+        :returns: ndarray (distance, index) (k x 2)
         """
         cdef np.ndarray[np.int32_t, ndim=1, mode='c'] neighbor_indeces
         cdef np.ndarray[np.float64_t, ndim=1, mode='c'] neighbor_dists
