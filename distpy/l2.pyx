@@ -1,14 +1,14 @@
 import numpy as np
 cimport numpy as np
 
-cdef class L2Base(object):
+cdef class L2(object):
     """L2 Norm implemented to facilitate simple metric implementation
         
     To create a new norm extend this class and implement 'dist'
     """
 
     def __init__(self):
-        super(L2Base, self).__init__()
+        super(L2, self).__init__()
 
     cpdef double dist(self,
                       np.ndarray[np.float64_t, ndim=1, mode='c'] v0,
