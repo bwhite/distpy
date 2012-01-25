@@ -1,6 +1,6 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
+from setuptools.extension import Extension
 import re
-from distutils.extension import Extension
 import numpy as np
 
 
@@ -50,5 +50,5 @@ ext_modules = [Extension("_distpy_l2",
 setup(name='distpy',
       cmdclass=cmdclass,
       version='.01',
-      packages=['distpy'],
+      packages=find_packages(),
       ext_modules=ext_modules)
