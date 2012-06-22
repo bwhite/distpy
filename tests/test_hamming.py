@@ -24,6 +24,17 @@ import distpy
 import types
 import time
 from scipy.spatial.distance import hamming as hamming_sp
+import scipy as sp
+import scipy.spatial
+import contextlib
+
+
+@contextlib.contextmanager
+def timer(name):
+    st = time.time()
+    yield
+    print('[%s]: %s' % (name, time.time() - st))
+
 
 
 def unpack_vector(vec):
@@ -66,6 +77,19 @@ class Test(unittest.TestCase):
                 hdist = np.sum(unpack_vector(neighbors[out[0, 1]]) != unpack_vector(vector))
                 self.assertEqual(hdist, out[0, 0])
                 print('k[%d] Bytes[%d] Out[0] = [%s] hdists[%d] t0[%f] t1[%f] t2[%f] t3[%f] r_generic[%f] r8[%f] r_slow[%f]' % (k, num_dims, out[0, :], hdist, st0, st1, st2, st3, st1 / st0, st3 / st0, st2 / st0))
+
+    def test_1(self):
+        num_samples = 1000
+        for num_dims in [1, 2, 3, 4, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128]:
+            print('NumDims[%d]' % num_dims)
+            vecs = (np.random.random((num_samples, num_dims)) < .5).astype(np.int)
+            vecs_packed = np.packbits(vecs, axis=1)
+            with timer('SP[%d]' % num_dims):
+                sp_out = (sp.spatial.distance.cdist(vecs, vecs, 'hamming') * num_dims).astype(np.int)
+            with timer('DP[%d]' % num_dims):
+                dp_out = distpy.Hamming().cdist(vecs_packed, vecs_packed)
+            np.testing.assert_equal(sp_out, dp_out)
+        
 
 if __name__ == '__main__':
     unittest.main()

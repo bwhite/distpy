@@ -9,6 +9,7 @@ cdef extern from "hamming_aux.h":
     void hamdist_batch(void *xs, void *y, np.int32_t *out, int num_ints, int num_xs, int num_bytes, int (*hamdist)(void *, void *, int))
     void make_lut16bit(np.uint8_t *lut16bit)
     void hamdist_cmap_lut16(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size_by_2, int num_xs, int num_ys, np.uint8_t *lut16bit)
+    void hamdist_cmap_lut16_odd(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size_by_2, int num_xs, int num_ys, np.uint8_t *lut16bit)
 
 
 cdef int hamdist_shift(int num_bytes):
@@ -58,10 +59,13 @@ cdef class Hamming(object):
         :returns: ndarray (a_samples x b_samples)
         """
         assert a.shape[1] == b.shape[1]
-        assert a.shape[1] % 2 == 0
         cdef np.ndarray out = np.zeros((a.shape[0], b.shape[0]), dtype=np.int32)
-        hamdist_cmap_lut16(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
-                           a.shape[1] / 2, a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
+        if a.shape[1] % 2:
+            hamdist_cmap_lut16_odd(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
+                                   a.shape[1] / 2, a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
+        else:
+            hamdist_cmap_lut16(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
+                               a.shape[1] / 2, a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
         return out
 
     cpdef int dist(self,
@@ -75,9 +79,11 @@ cdef class Hamming(object):
         :returns: Integer values (greater is further)
         """
         assert v0.size == v1.size
-        assert v0.size % 2 == 0
         cdef np.int32_t out = 0
-        hamdist_cmap_lut16(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size / 2, 1, 1, <np.uint8_t *>self.lut16bit.data)
+        if a.shape[1] % 2:
+            hamdist_cmap_lut16_odd(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size / 2, 1, 1, <np.uint8_t *>self.lut16bit.data)
+        else:
+            hamdist_cmap_lut16(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size / 2, 1, 1, <np.uint8_t *>self.lut16bit.data)
         return out
 
     cpdef np.ndarray[np.int32_t, ndim=2, mode='c'] knn(self,
