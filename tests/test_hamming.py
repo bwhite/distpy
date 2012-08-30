@@ -77,7 +77,12 @@ class Test(unittest.TestCase):
                 sp_out = (sp.spatial.distance.cdist(vecs0, vecs1, 'hamming') * num_dims).astype(np.int)
             with timer('DP[%d]' % num_dims):
                 dp_out = distpy.Hamming().cdist(vecs_packed0, vecs_packed1)
+            with timer('DPSlow[%d]' % num_dims):
+                h = distpy.Hamming()
+                dpslow_out = np.array([[h.dist(y, x) for y in vecs_packed1] for x in vecs_packed0])
             np.testing.assert_equal(sp_out, dp_out)
+            np.testing.assert_equal(sp_out, dpslow_out)
+
 
 if __name__ == '__main__':
     unittest.main()
