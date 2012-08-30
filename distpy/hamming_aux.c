@@ -24,7 +24,7 @@ void make_lut16bit_global() {
     }
 }
 
-void hamdist_cmap_lut16_even(uint16_t *xs, uint16_t *ys, int32_t *out, const int size_by_2, const int num_xs, const int num_ys) {
+void hamdist_cmap_lut16_even(uint16_t *xs, uint16_t *ys, uint32_t *out, const int size_by_2, const int num_xs, const int num_ys) {
     int i, j, k;
     uint16_t *ys_orig = ys;
     make_lut16bit_global();
@@ -36,7 +36,7 @@ void hamdist_cmap_lut16_even(uint16_t *xs, uint16_t *ys, int32_t *out, const int
         }
 }
 
-void hamdist_cmap_lut16_odd(uint8_t *xs, uint8_t *ys, int32_t *out, const int size_by_2, const int num_xs, const int num_ys) {
+void hamdist_cmap_lut16_odd(uint8_t *xs, uint8_t *ys, uint32_t *out, const int size_by_2, const int num_xs, const int num_ys) {
     int i, j, k;
     int size = size_by_2 * 2;
     int size_p1 = size + 1;
@@ -52,9 +52,9 @@ void hamdist_cmap_lut16_odd(uint8_t *xs, uint8_t *ys, int32_t *out, const int si
         }
 }
 
-void hamdist_cmap_lut16(uint16_t *xs, uint16_t *ys, int32_t *out, const int size, const int num_xs, const int num_ys) {
+void hamdist_cmap_lut16(uint8_t *xs, uint8_t *ys, uint32_t *out, const int size, const int num_xs, const int num_ys) {
     if (size % 2)
-        hamdist_cmap_lut16_odd((uint8_t *)xs, (uint8_t *)ys, out, size / 2, num_xs, num_ys);
+        hamdist_cmap_lut16_odd(xs, ys, out, size / 2, num_xs, num_ys);
     else
-        hamdist_cmap_lut16_even(xs, ys, out, size / 2, num_xs, num_ys);
+        hamdist_cmap_lut16_even((uint16_t *)xs, (uint16_t *)ys, out, size / 2, num_xs, num_ys);
 }
