@@ -2,21 +2,15 @@ import numpy as np
 cimport numpy as np
 
 cdef extern from "hamming_aux.h":
-    void make_lut16bit(np.uint8_t *lut16bit)
-    void hamdist_cmap_lut16(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size, int num_xs, int num_ys, np.uint8_t *lut16bit)
+    void hamdist_cmap_lut16(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size, int num_xs, int num_ys)
 
 
 cdef class Hamming(object):
     """Hamming distance computer
     """
-    cdef np.ndarray lut16bit
 
     def __init__(self):
         super(Hamming, self).__init__()
-        self.lut16bit = np.zeros(2**16, dtype=np.uint8)
-        make_lut16bit(<np.uint8_t *>self.lut16bit.data)
-        #np.testing.assert_equal(self.lut16bit, np.fromiter(((np.sum(np.unpackbits(np.fromstring(np.uint16(x).tostring(), dtype=np.uint8))))
-        #                                                    for x in xrange(2**16)), dtype=np.uint8))
 
     cpdef np.ndarray[np.int32_t, ndim=2, mode='c'] cdist(self, np.ndarray[np.uint8_t, ndim=2, mode='c'] a,
                                                          np.ndarray[np.uint8_t, ndim=2, mode='c'] b):
@@ -29,7 +23,7 @@ cdef class Hamming(object):
         assert a.shape[1] == b.shape[1]
         cdef np.ndarray out = np.zeros((a.shape[0], b.shape[0]), dtype=np.int32)
         hamdist_cmap_lut16(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
-                           a.shape[1], a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
+                           a.shape[1], a.shape[0], b.shape[0])
         return out
 
     cpdef int dist(self,
@@ -44,7 +38,7 @@ cdef class Hamming(object):
         """
         assert v0.size == v1.size
         cdef np.int32_t out = 0
-        hamdist_cmap_lut16(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size, 1, 1, <np.uint8_t *>self.lut16bit.data)
+        hamdist_cmap_lut16(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size, 1, 1)
         return out
 
     cpdef np.ndarray[np.int32_t, ndim=2, mode='c'] knn(self,
@@ -61,6 +55,6 @@ cdef class Hamming(object):
         assert vector.size == neighbors.shape[1]
         cdef np.ndarray[np.int32_t, ndim=1, mode='c'] dists = np.zeros(neighbors.shape[0], dtype=np.int32)
         hamdist_cmap_lut16(<np.uint16_t *>neighbors.data, <np.uint16_t *>vector.data, <np.int32_t *>dists.data,
-                           neighbors.shape[1], neighbors.shape[0], 1, <np.uint8_t *>self.lut16bit.data)
+                           neighbors.shape[1], neighbors.shape[0], 1)
         indeces = dists.argsort()[:k]
         return np.ascontiguousarray(np.dstack([dists[indeces], indeces])[0])
