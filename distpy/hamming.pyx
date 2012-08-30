@@ -2,49 +2,17 @@ import numpy as np
 cimport numpy as np
 
 cdef extern from "hamming_aux.h":
-    int hamdist8(void *x, void *y, int num_ints)
-    int hamdist16(void *x, void *y, int num_ints)
-    int hamdist32(void *x, void *y, int num_ints)
-    int hamdist64(void *x, void *y, int num_ints)
-    void hamdist_batch(void *xs, void *y, np.int32_t *out, int num_ints, int num_xs, int num_bytes, int (*hamdist)(void *, void *, int))
     void make_lut16bit(np.uint8_t *lut16bit)
-    void hamdist_cmap_lut16(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size_by_2, int num_xs, int num_ys, np.uint8_t *lut16bit)
-    void hamdist_cmap_lut16_odd(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size_by_2, int num_xs, int num_ys, np.uint8_t *lut16bit)
-
-
-cdef int hamdist_shift(int num_bytes):
-    if num_bytes % 8 == 0:
-        return 3
-    elif num_bytes % 4 == 0:
-        return 2
-    elif num_bytes % 2 == 0:
-        return 1
-    return 0
-
-cdef (int(*)(void*, void*, int)) hamdist_selector(int shift):
-    if shift == 0:
-        return hamdist8
-    elif shift == 1:
-        return hamdist16
-    elif shift == 2:
-        return hamdist32
-    elif shift == 3:
-        return hamdist64
-    raise ValueError('Shift expected to be 0 <= x <= 3')
+    void hamdist_cmap_lut16(np.uint16_t *xs, np.uint16_t *ys, np.int32_t *out, int size, int num_xs, int num_ys, np.uint8_t *lut16bit)
 
 
 cdef class Hamming(object):
     """Hamming distance computer
     """
-    cdef int shift
     cdef np.ndarray lut16bit
 
-    def __init__(self, num_bytes=0):
+    def __init__(self):
         super(Hamming, self).__init__()
-        if num_bytes > 0:
-            self.shift = hamdist_shift(num_bytes)
-        else:
-            self.shift = -1
         self.lut16bit = np.zeros(2**16, dtype=np.uint8)
         make_lut16bit(<np.uint8_t *>self.lut16bit.data)
         #np.testing.assert_equal(self.lut16bit, np.fromiter(((np.sum(np.unpackbits(np.fromstring(np.uint16(x).tostring(), dtype=np.uint8))))
@@ -60,12 +28,8 @@ cdef class Hamming(object):
         """
         assert a.shape[1] == b.shape[1]
         cdef np.ndarray out = np.zeros((a.shape[0], b.shape[0]), dtype=np.int32)
-        if a.shape[1] % 2:
-            hamdist_cmap_lut16_odd(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
-                                   a.shape[1] / 2, a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
-        else:
-            hamdist_cmap_lut16(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
-                               a.shape[1] / 2, a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
+        hamdist_cmap_lut16(<np.uint16_t *>a.data, <np.uint16_t *>b.data, <np.int32_t *>out.data,
+                           a.shape[1], a.shape[0], b.shape[0], <np.uint8_t *>self.lut16bit.data)
         return out
 
     cpdef int dist(self,
@@ -80,10 +44,7 @@ cdef class Hamming(object):
         """
         assert v0.size == v1.size
         cdef np.int32_t out = 0
-        if a.shape[1] % 2:
-            hamdist_cmap_lut16_odd(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size / 2, 1, 1, <np.uint8_t *>self.lut16bit.data)
-        else:
-            hamdist_cmap_lut16(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size / 2, 1, 1, <np.uint8_t *>self.lut16bit.data)
+        hamdist_cmap_lut16(<np.uint16_t *>v0.data, <np.uint16_t *>v1.data, &out, v0.size, 1, 1, <np.uint8_t *>self.lut16bit.data)
         return out
 
     cpdef np.ndarray[np.int32_t, ndim=2, mode='c'] knn(self,
@@ -99,10 +60,7 @@ cdef class Hamming(object):
         """
         assert vector.size == neighbors.shape[1]
         cdef np.ndarray[np.int32_t, ndim=1, mode='c'] dists = np.zeros(neighbors.shape[0], dtype=np.int32)
-        cdef int shift
-        shift = self.shift if self.shift >= 0 else hamdist_shift(vector.size)
-        cdef int (*hamdist)(void*,  void*, int)
-        hamdist = hamdist_selector(shift)
-        hamdist_batch(neighbors.data, vector.data, <np.int32_t *>dists.data, vector.size >> shift, neighbors.shape[0], vector.size, hamdist)
+        hamdist_cmap_lut16(<np.uint16_t *>neighbors.data, <np.uint16_t *>vector.data, <np.int32_t *>dists.data,
+                           neighbors.shape[1], neighbors.shape[0], 1, <np.uint8_t *>self.lut16bit.data)
         indeces = dists.argsort()[:k]
         return np.ascontiguousarray(np.dstack([dists[indeces], indeces])[0])

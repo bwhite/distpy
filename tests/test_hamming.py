@@ -51,45 +51,33 @@ def slow_hamming_knn(neighbors, vector, k):
 class Test(unittest.TestCase):
     def test_0(self):
         num_vecs = 1000
-        dist_generic = distpy.Hamming()
-        dist_8 = distpy.Hamming(1)
+        dist = distpy.Hamming()
         for k in [1, 2, 5, 10, 20, num_vecs + 10]:
             for num_dims in [1, 2, 3, 4, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128]:
                 neighbors = np.array(np.random.randint(0, 256, (num_vecs, num_dims)), dtype=np.uint8)
                 vector = np.array(np.random.randint(0, 256, num_dims), dtype=np.uint8)
-                dist = distpy.Hamming(num_dims)
-                st0 = time.time()
-                out = dist.knn(neighbors, vector, k)
-                st0 = time.time() - st0
-                st1 = time.time()
-                out1 = dist_generic.knn(neighbors, vector, k)
-                st1 = time.time() - st1
-                st2 = time.time()
-                out2 = slow_hamming_knn(neighbors, vector, k)
-                st2 = time.time() - st2
-                st3 = time.time()
-                out3 = dist_8.knn(neighbors, vector, k)
-                st3 = time.time() - st3
-                np.testing.assert_equal(out, out1)
+                with timer('distpy[%d]' % num_dims):
+                    out = dist.knn(neighbors, vector, k)
+                with timer('slow[%d]' % num_dims):
+                    out2 = slow_hamming_knn(neighbors, vector, k)
                 np.testing.assert_equal(out, out2)
-                np.testing.assert_equal(out, out3)
                 self.assertEqual(out.shape[0], min(num_vecs, k))
                 hdist = np.sum(unpack_vector(neighbors[out[0, 1]]) != unpack_vector(vector))
                 self.assertEqual(hdist, out[0, 0])
-                print('k[%d] Bytes[%d] Out[0] = [%s] hdists[%d] t0[%f] t1[%f] t2[%f] t3[%f] r_generic[%f] r8[%f] r_slow[%f]' % (k, num_dims, out[0, :], hdist, st0, st1, st2, st3, st1 / st0, st3 / st0, st2 / st0))
 
     def test_1(self):
         num_samples = 1000
         for num_dims in [1, 2, 3, 4, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128]:
             print('NumDims[%d]' % num_dims)
-            vecs = (np.random.random((num_samples, num_dims)) < .5).astype(np.int)
-            vecs_packed = np.packbits(vecs, axis=1)
+            vecs0 = (np.random.random((num_samples, num_dims)) < .5).astype(np.int)
+            vecs_packed0 = np.packbits(vecs0, axis=1)
+            vecs1 = (np.random.random((num_samples, num_dims)) < .5).astype(np.int)
+            vecs_packed1 = np.packbits(vecs1, axis=1)
             with timer('SP[%d]' % num_dims):
-                sp_out = (sp.spatial.distance.cdist(vecs, vecs, 'hamming') * num_dims).astype(np.int)
+                sp_out = (sp.spatial.distance.cdist(vecs0, vecs1, 'hamming') * num_dims).astype(np.int)
             with timer('DP[%d]' % num_dims):
-                dp_out = distpy.Hamming().cdist(vecs_packed, vecs_packed)
+                dp_out = distpy.Hamming().cdist(vecs_packed0, vecs_packed1)
             np.testing.assert_equal(sp_out, dp_out)
-        
 
 if __name__ == '__main__':
     unittest.main()
