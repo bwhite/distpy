@@ -1,3 +1,18 @@
+void hamdist_cmap_popcount(uint8_t *xs, uint8_t *ys, uint32_t *out, const int size, const int num_xs, const int num_ys) {
+    int i, j, k;
+    uint8_t *ys_orig = ys;
+    const int size_by_8 = size / 8;
+    assert(sizeof(unsigned long long) == 8);
+    assert(size % 8 == 0);
+    for (i = 0; i < num_xs; ++i, xs += size)
+        for (j = 0, ys = ys_orig; j < num_ys; ++j, ++out, ys += size) {
+            for (k = 0; k < size_by_8; ++k) {
+                *out += __builtin_popcountll(((uint64_t *) xs)[k] ^ ((uint64_t *) ys)[k]);
+            }
+        }
+}
+
+
 // Older implementations kept for future use or reference
 int hamdist8(uint8_t *x, uint8_t *y, const int num_ints) {
     uint8_t val;
