@@ -56,9 +56,9 @@ class Test(unittest.TestCase):
             for num_dims in [1, 2, 3, 4, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128]:
                 neighbors = np.array(np.random.randint(0, 256, (num_vecs, num_dims)), dtype=np.uint8)
                 vector = np.array(np.random.randint(0, 256, num_dims), dtype=np.uint8)
-                with timer('distpy[%d]' % num_dims):
+                with timer('distpy[k=%d][d=%d]' % (k, num_dims)):
                     out = dist.knn(neighbors, vector, k)
-                with timer('slow[%d]' % num_dims):
+                with timer('slow[k=%d][d=%d]' % (k, num_dims)):
                     out2 = slow_hamming_knn(neighbors, vector, k)
                 np.testing.assert_equal(out, out2)
                 self.assertEqual(out.shape[0], min(num_vecs, k))
@@ -77,11 +77,12 @@ class Test(unittest.TestCase):
                 sp_out = (sp.spatial.distance.cdist(vecs0, vecs1, 'hamming') * num_dims).astype(np.int)
             with timer('DP[%d]' % num_dims):
                 dp_out = distpy.Hamming().cdist(vecs_packed0, vecs_packed1)
-            with timer('DPSlow[%d]' % num_dims):
-                h = distpy.Hamming()
-                dpslow_out = np.array([[h.dist(y, x) for y in vecs_packed1] for x in vecs_packed0])
+            if 0:
+                with timer('DPSlow[%d]' % num_dims):
+                    h = distpy.Hamming()
+                    dpslow_out = np.array([[h.dist(y, x) for y in vecs_packed1] for x in vecs_packed0])
+                np.testing.assert_equal(sp_out, dpslow_out)
             np.testing.assert_equal(sp_out, dp_out)
-            np.testing.assert_equal(sp_out, dpslow_out)
 
 
 if __name__ == '__main__':
