@@ -45,6 +45,12 @@ ext_modules = [Extension("_distpy_l2",
                           'distpy/hamming_aux.c'],
                          extra_compile_args=['-I', np.get_include(),
                                              '-O3', '-Wall', '-mmmx', '-msse',
+                                             '-msse2']),
+               Extension("_distpy_jaccard_weighted",
+                         ["distpy/jaccard_weighted" + source_ext,
+                          'distpy/jaccard_weighted_aux.c'],
+                         extra_compile_args=['-I', np.get_include(),
+                                             '-O3', '-Wall', '-mmmx', '-msse',
                                              '-msse2'])]
 
 setup(name='distpy',
