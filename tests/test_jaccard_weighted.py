@@ -68,12 +68,14 @@ class Test(unittest.TestCase):
                 self.assertEqual(out0, w[x])
                 print((out0, out1, w[x]))
             for x in range(1000):
-                a = np.fromstring(np.random.bytes(n * 2), dtype=np.uint8)
-                b = np.fromstring(np.random.bytes(n * 2), dtype=np.uint8)
+                bytes = np.ceil(n / 8.)
+                a = np.fromstring(np.random.bytes(bytes), dtype=np.uint8)
+                b = np.fromstring(np.random.bytes(bytes), dtype=np.uint8)
                 out0 = j.dist(a, b)
                 out1 = jaccard_weighted_slow(a, b, w)
                 self.assertAlmostEqual(out0, out1)
                 print((out0, out1))
+
 
 if __name__ == '__main__':
     import cProfile

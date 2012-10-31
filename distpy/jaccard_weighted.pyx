@@ -43,8 +43,8 @@ cdef class JaccardWeighted(object):
         assert a.shape[1] == b.shape[1]
         assert a.shape[1] == self.true_bytes
         if self.true_bytes != self.new_bytes:  # Resize if we need to
-            a = np.ascontiguousarray(np.hstack([a, np.zeros((a.shape[0], self.new_bytes - self.true_bytes))]))
-            b = np.ascontiguousarray(np.hstack([b, np.zeros((b.shape[0], self.new_bytes - self.true_bytes))]))
+            a = np.ascontiguousarray(np.hstack([a, np.zeros((a.shape[0], self.new_bytes - self.true_bytes), dtype=np.uint8)]))
+            b = np.ascontiguousarray(np.hstack([b, np.zeros((b.shape[0], self.new_bytes - self.true_bytes), dtype=np.uint8)]))
         assert a.shape[1] == b.shape[1]
         assert a.shape[1] == self.new_bytes
         cdef np.ndarray out = np.zeros((a.shape[0], b.shape[0]), dtype=np.double)
