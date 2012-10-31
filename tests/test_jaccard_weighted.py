@@ -52,7 +52,7 @@ class Test(unittest.TestCase):
         pass
 
     def test_name(self):
-        for n in [1, 5, 8, 16, 20, 20 * 8]:
+        for n in [16, 1, 5, 8, 16, 20, 20 * 8]:
             w = np.random.random(n)
             j = distpy.JaccardWeighted(w)
             for x in range(16):
