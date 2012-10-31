@@ -36,8 +36,10 @@ import numpy as np
 
 
 def jaccard_weighted_slow(a, b, w):
+    w = w.copy()
+    w.resize(a.size * 8)
     out = np.double(0.)
-    for x in range(w.size / 8):
+    for x in range(a.size):
         cur_w = w[8*x:8*(x+1)]
         out += sum(cur_w[np.unpackbits(a[x] & b[x]).astype(np.bool)])
     return out
@@ -55,7 +57,7 @@ class Test(unittest.TestCase):
         for n in [16, 1, 5, 8, 16, 20, 20 * 8]:
             w = np.random.random(n)
             j = distpy.JaccardWeighted(w)
-            for x in range(16):
+            for x in range(n):
                 a = np.zeros(n, dtype=np.uint8)
                 b = np.zeros(n, dtype=np.uint8)
                 a[x] = 1
