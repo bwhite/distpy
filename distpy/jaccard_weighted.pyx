@@ -34,7 +34,7 @@ cdef class JaccardWeighted(object):
         self.chunks = chunks
 
     def __reduce__(self):
-        return (JaccardWeighted, (self.weights))
+        return (JaccardWeighted, (self.weights,))
 
     cpdef np.ndarray[np.double_t, ndim=2, mode='c'] cdist(self, np.ndarray[np.uint8_t, ndim=2, mode='c'] a,
                                                           np.ndarray[np.uint8_t, ndim=2, mode='c'] b):

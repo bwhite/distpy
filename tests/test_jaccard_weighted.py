@@ -4,6 +4,7 @@ except ImportError:
     import unittest
 import distpy
 import numpy as np
+import cPickle as pickle
 # Cheat Sheet (method/test) <http://docs.python.org/library/unittest.html>
 #
 # assertEqual(a, b)       a == b   
@@ -57,6 +58,7 @@ class Test(unittest.TestCase):
         for n in [16, 1, 5, 8, 16, 20, 20 * 8]:
             w = np.random.random(n)
             j = distpy.JaccardWeighted(w)
+            j2 = pickle.loads(pickle.dumps(j, -1))
             for x in range(n):
                 a = np.zeros(n, dtype=np.uint8)
                 b = np.zeros(n, dtype=np.uint8)
@@ -66,8 +68,10 @@ class Test(unittest.TestCase):
                 b = np.packbits(b)
                 out0 = j.dist(a, b)
                 out1 = jaccard_weighted_slow(a, b, w)
+                out2 = j2.dist(a, b)
                 self.assertEqual(out0, out1)
                 self.assertEqual(out0, w[x])
+                self.assertEqual(out0, out2)
                 print((out0, out1, w[x]))
             for x in range(1000):
                 bytes = np.ceil(n / 8.)
@@ -75,7 +79,9 @@ class Test(unittest.TestCase):
                 b = np.fromstring(np.random.bytes(bytes), dtype=np.uint8)
                 out0 = j.dist(a, b)
                 out1 = jaccard_weighted_slow(a, b, w)
+                out2 = j2.dist(a, b)
                 self.assertAlmostEqual(out0, out1)
+                self.assertEqual(out0, out2)
                 print((out0, out1))
 
 
