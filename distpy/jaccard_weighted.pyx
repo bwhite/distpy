@@ -14,11 +14,13 @@ cdef class JaccardWeighted(object):
         super(JaccardWeighted, self).__init__()
         cdef np.ndarray w, chunks, cur_chunk, cur_w
         weights = np.asfarray(weights)
-        self.true_size = len(weights)
+        self.true_size = weights.size
         self.true_bytes = int(np.ceil(weights.size / 8.) * 8)
         self.new_size = int(np.ceil(weights.size / 16.) * 16)
         weights.resize(self.new_size)
         self.new_bytes = self.new_size / 8
+        print((self.true_size, self.new_size, self.true_bytes, self.new_bytes))
+        print(weights)
         assert len(weights) % 16 == 0
         w = np.asfarray(weights).reshape((-1, 16))
         chunks = np.zeros((w.shape[0], 2**16), dtype=np.double)
