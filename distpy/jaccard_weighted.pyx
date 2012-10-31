@@ -79,7 +79,7 @@ cdef class JaccardWeighted(object):
         :returns: ndarray (distance, index) (k x 2)
         """
         assert vector.size == neighbors.shape[1]
-        vector = vector.reshape((1, -1))
-        cdef np.ndarray[np.uint32_t, ndim=1, mode='c'] dists = self.cdist(neighbors, vector).ravel()
+        vector_2 = vector.reshape((1, -1))
+        cdef np.ndarray[np.uint32_t, ndim=1, mode='c'] dists = self.cdist(neighbors, vector_2).ravel()
         indeces = dists.argsort()[:k]
         return np.ascontiguousarray(np.dstack([dists[indeces], indeces])[0])
