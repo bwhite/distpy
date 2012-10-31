@@ -9,11 +9,12 @@ cdef extern from "jaccard_weighted_aux.h":
 cdef class JaccardWeighted(object):
     cdef np.ndarray w, chunks
     cdef int true_size, new_size, true_bytes, new_bytes
+    cdef object weights
 
     def __init__(self, weights):
         super(JaccardWeighted, self).__init__()
         cdef np.ndarray w, chunks, cur_chunk, cur_w
-        weights = np.asfarray(weights)
+        self.weights = np.asfarray(weights)
         self.true_size = weights.size
         self.true_bytes = int(np.ceil(weights.size / 8.))
         self.new_size = int(np.ceil(weights.size / 16.) * 16)
@@ -31,6 +32,9 @@ cdef class JaccardWeighted(object):
             make_lut16_chunk(<np.double_t*>cur_w.data,
                              <np.double_t*>cur_chunk.data)
         self.chunks = chunks
+
+    def __reduce__(self):
+        return (JaccardWeighted, (self.weights))
 
     cpdef np.ndarray[np.double_t, ndim=2, mode='c'] cdist(self, np.ndarray[np.uint8_t, ndim=2, mode='c'] a,
                                                           np.ndarray[np.uint8_t, ndim=2, mode='c'] b):
