@@ -15,7 +15,7 @@ cdef class JaccardWeighted(object):
         cdef np.ndarray w, chunks, cur_chunk, cur_w
         weights = np.asfarray(weights)
         self.true_size = weights.size
-        self.true_bytes = int(np.ceil(weights.size / 8.) * 8)
+        self.true_bytes = int(np.ceil(weights.size / 8.))
         self.new_size = int(np.ceil(weights.size / 16.) * 16)
         weights.resize(self.new_size)
         self.new_bytes = self.new_size / 8
