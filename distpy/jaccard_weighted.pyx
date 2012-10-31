@@ -40,10 +40,9 @@ cdef class JaccardWeighted(object):
         :param b: Matrix of b_samples x dims
         :returns: ndarray (a_samples x b_samples)
         """
-        print(a.shape)
-        print(b.shape)
+        print(a.shape[1])
+        print(b.shape[1])
         print((self.true_size, self.new_size, self.true_bytes, self.new_bytes))
-        print(weights)
         assert a.shape[1] == b.shape[1]
         assert a.shape[1] == self.true_bytes
         if self.true_bytes != self.new_bytes:  # Resize if we need to
