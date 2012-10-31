@@ -12,6 +12,12 @@ cdef class JaccardWeighted(object):
     def __init__(self, weights):
         super(JaccardWeighted, self).__init__()
         cdef np.ndarray w, chunks, cur_chunk, cur_w
+        weights = np.asfarray(weights)
+        self.true_size = len(weights)
+        self.new_size = int(np.ceil(weights.size / 16.) * 16)
+        weights.resize(self.new_size)
+        self.true_bytes = int(np.ceil(weights.size / 8.) * 8)
+        self.new_bytes = self.new_size / 8
         assert len(weights) % 16 == 0
         w = np.asfarray(weights).reshape((-1, 16))
         chunks = np.zeros((w.shape[0], 2**16), dtype=np.double)
@@ -31,8 +37,12 @@ cdef class JaccardWeighted(object):
         :returns: ndarray (a_samples x b_samples)
         """
         assert a.shape[1] == b.shape[1]
-        assert a.shape[1] % 2 == 0
-        assert a.shape[1] / 2 == self.chunks.shape[0]
+        assert a.shape[1] == self.true_bytes
+        if self.true_bytes != self.new_bytes:  # Resize if we need to
+            a = np.ascontiguousarray(np.hstack([a, np.zeros((a.shape[0], self.new_bytes - self.true_bytes))]))
+            b = np.ascontiguousarray(np.hstack([b, np.zeros((b.shape[0], self.new_bytes - self.true_bytes))]))
+        assert a.shape[1] == b.shape[1]
+        assert a.shape[1] == self.new_bytes
         cdef np.ndarray out = np.zeros((a.shape[0], b.shape[0]), dtype=np.double)
         jaccard_weighted_cmap_lut16(<np.uint8_t *>a.data, <np.uint8_t *>b.data, <np.double_t *>out.data,
                                     a.shape[1], a.shape[0], b.shape[0], <np.double_t *>self.chunks.data, self.chunks.shape[0])
@@ -49,11 +59,9 @@ cdef class JaccardWeighted(object):
         :returns: Integer values (greater is further)
         """
         assert v0.size == v1.size
-        assert v0.size % 2 == 0
-        assert v0.size / 2 == self.chunks.shape[0]
-        cdef np.double_t out = 0
-        jaccard_weighted_cmap_lut16(<np.uint8_t *>v0.data, <np.uint8_t *>v1.data, &out, v0.size, 1, 1, <np.double_t *>self.chunks.data, self.chunks.shape[0])
-        return out
+        v0 = v0.reshape((1, -1))
+        v1 = v1.reshape((1, -1))
+        return self.cdist(v0, v1).flat[0]
 
     cpdef np.ndarray[np.double_t, ndim=2, mode='c'] knn(self,
                                                         np.ndarray[np.uint8_t, ndim=2, mode='c'] neighbors,
@@ -67,10 +75,7 @@ cdef class JaccardWeighted(object):
         :returns: ndarray (distance, index) (k x 2)
         """
         assert vector.size == neighbors.shape[1]
-        assert vector.size % 2 == 0
-        assert vector.size / 2 == self.chunks.shape[0]
-        cdef np.ndarray[np.uint32_t, ndim=1, mode='c'] dists = np.zeros(neighbors.shape[0], dtype=np.double)
-        jaccard_weighted_cmap_lut16(<np.uint8_t *>neighbors.data, <np.uint8_t *>vector.data, <np.double_t *>dists.data,
-                                    neighbors.shape[1], neighbors.shape[0], 1, <np.double_t *>self.chunks.data, self.chunks.shape[0])
+        vector = vector.reshape((1, -1))
+        cdef np.ndarray[np.uint32_t, ndim=1, mode='c'] dists = self.cdist(neighbors, vector).ravel()
         indeces = dists.argsort()[:k]
         return np.ascontiguousarray(np.dstack([dists[indeces], indeces])[0])
