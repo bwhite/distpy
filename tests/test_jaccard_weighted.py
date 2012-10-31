@@ -52,12 +52,12 @@ class Test(unittest.TestCase):
         pass
 
     def test_name(self):
-        for n in [1, 5, 10, 20]:
-            w = np.random.random(16 * n)
+        for n in [1, 5, 8, 16, 20, 20 * 8]:
+            w = np.random.random(n)
             j = distpy.JaccardWeighted(w)
             for x in range(16):
-                a = np.zeros(16 * n, dtype=np.uint8)
-                b = np.zeros(16 * n, dtype=np.uint8)
+                a = np.zeros(n, dtype=np.uint8)
+                b = np.zeros(n, dtype=np.uint8)
                 a[x] = 1
                 b[x] = 1
                 a = np.packbits(a)
