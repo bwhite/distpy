@@ -84,5 +84,5 @@ cdef class JaccardWeighted(object):
         assert vector.size == neighbors.shape[1]
         vector_2 = vector.reshape((1, -1))
         cdef np.ndarray[np.float64_t, ndim=1, mode='c'] dists = self.cdist(neighbors, vector_2).ravel()
-        indeces = dists.argsort()[:k]
+        indeces = dists.argsort()[::-1][:k]
         return np.ascontiguousarray(np.dstack([dists[indeces], indeces])[0])
