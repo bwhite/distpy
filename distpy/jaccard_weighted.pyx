@@ -62,9 +62,9 @@ cdef class JaccardWeighted(object):
         :returns: Integer values (greater is further)
         """
         assert v0.size == v1.size
-        v0 = v0.reshape((1, -1))
-        v1 = v1.reshape((1, -1))
-        return self.cdist(v0, v1).flat[0]
+        v0_2 = v0.reshape((1, -1))
+        v1_2 = v1.reshape((1, -1))
+        return self.cdist(v0_2, v1_2).flat[0]
 
     cpdef np.ndarray[np.double_t, ndim=2, mode='c'] knn(self,
                                                         np.ndarray[np.uint8_t, ndim=2, mode='c'] neighbors,
