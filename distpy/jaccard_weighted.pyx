@@ -18,7 +18,7 @@ cdef class JaccardWeighted(object):
         self.true_bytes = int(np.ceil(weights.size / 8.))
         self.new_size = int(np.ceil(weights.size / 16.) * 16)
         if self.true_size != self.new_size:
-            weights = np.ascontiguousarray(np.hstack([weights, np.zeros(self.new_size - self.true_size)))
+            weights = np.ascontiguousarray(np.hstack([weights, np.zeros(self.new_size - self.true_size)]))
         weights.resize(self.new_size)
         self.new_bytes = self.new_size / 8
         print((self.true_size, self.new_size, self.true_bytes, self.new_bytes))
