@@ -8,6 +8,7 @@ cdef extern from "jaccard_weighted_aux.h":
 
 cdef class JaccardWeighted(object):
     cdef np.ndarray w, chunks
+    cdef int true_size, new_size, true_bytes, new_bytes
 
     def __init__(self, weights):
         super(JaccardWeighted, self).__init__()
